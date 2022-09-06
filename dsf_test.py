@@ -4,13 +4,16 @@ import dsf
 
 class MyTestCase(unittest.TestCase):
     def test_ret_PQ(self):
-        A = [[1, 2], [3, 4]]
-        B = [[1, 2], [3, 4]]
-        C = [[1, 2], [3, 4]]
-        D = [[1, 2], [3, 4]]
-        indicies = [[1]]
+        A = np.array([[0.5, 0, 0, 0], [0, 0.5, 0, 0], [0, 0, 0.5, 0], [0, 0, 0, 0.5]])
+        B = np.array([[1], [1], [1], [1]])
+        C = np.array([[1, 1, 1, 1]])
+        D = np.array([1])
+        index = [0]
 
-        [p, q] = dsf.ret_PQ(A, B, C, D, indicies)
+        print(index)
+        print(np.arange(D.shape[0]))
+
+        p, q = dsf.ret_PQ(A, B, C, D, index)
 
         print(p)
         print(q)
