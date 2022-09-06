@@ -10,3 +10,9 @@ run:
 		--volume $(shell pwd):/aht/dsf \
 		aht/dsf:latest \
 		/bin/bash
+
+test:
+	docker run \
+		--volume $(shell pwd):/aht/dsf \
+		aht/dsf:latest \
+		python dsf_test.py
