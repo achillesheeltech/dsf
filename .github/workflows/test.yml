@@ -21,7 +21,7 @@ jobs:
         uses: docker/setup-buildx-action@v1
       -
         name: Build the Docker Test Container
-        run: docker build --file Dockerfile --tag aht/dsf
+        run: docker build . --file Dockerfile --tag aht/dsf
       -
         name: Test Code
         run: docker run aht/dsf python dsf_test.py
