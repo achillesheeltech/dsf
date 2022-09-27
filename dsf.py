@@ -1014,10 +1014,12 @@ def ret_PQ(A, B, C, D, index):
     B = np.matrix(B)
     C = np.matrix(C)
     D = np.matrix(D)
-    print ("A.shape",A.shape)
-    print ("B.shape",B.shape)
-    print ("C.shape",C.shape)
-    print ("D.shape",D.shape)
+
+    # print ("A.shape",A.shape)
+    # print ("B.shape",B.shape)
+    # print ("C.shape",C.shape)
+    # print ("D.shape",D.shape)
+
     A,B,C,D = build_C(A, B, C, D, index)
     P, Q = find_PQ(A, B, C, D)
     P = simplify_tf(P)
