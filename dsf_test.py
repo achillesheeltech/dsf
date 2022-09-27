@@ -2,6 +2,7 @@ import unittest
 import numpy as np
 import dsf
 
+
 class MyTestCase(unittest.TestCase):
     def test_low_ordered_ret_PQ(self):
 
@@ -29,13 +30,13 @@ class MyTestCase(unittest.TestCase):
         # self.assertEqual(True, False)  # add assertion here
 
     # def test_two_ordered_ret_PQ(self):
-        # A higher order system (not yet working)
-        # A = np.array([[0.5, 0, 0, 0], [0, 0.5, 0, 0], [0, 0, 0.5, 0], [0, 0, 0, 0.5]])
-        # B = np.array([[1], [1], [1], [1]])
-        # C = np.array([[1, 1, 1, 1]])
-        # D = np.array([1])
-        # index = [0]
+    # A higher order system (not yet working)
+    # A = np.array([[0.5, 0, 0, 0], [0, 0.5, 0, 0], [0, 0, 0.5, 0], [0, 0, 0, 0.5]])
+    # B = np.array([[1], [1], [1], [1]])
+    # C = np.array([[1, 1, 1, 1]])
+    # D = np.array([1])
+    # index = [0]
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
