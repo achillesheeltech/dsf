@@ -23,5 +23,8 @@ jobs:
         name: Build the Docker Test Container
         run: docker build . --file Dockerfile --tag aht/dsf
       -
+        name: Lint code with black codestyle checker
+        run: docker run aht/dsf black --check --diff .
+      -
         name: Test Code
         run: docker run aht/dsf python dsf_test.py
