@@ -3,13 +3,11 @@ import numpy.polynomial.polynomial as poly
 from copy import deepcopy
 from collections import Counter
 import control as tf
-
 # import app.control as tf
 import numpy as np
 from sympy import Matrix
 from scipy import linalg as la
 import time
-
 
 # A function to solve (sI-A)^-1
 def find_resolvent(A):
@@ -23,12 +21,12 @@ def find_resolvent(A):
     """
     n, m = np.shape(A)
     if n != m:
-        raise ("ValueError: Input matrix, A, must be a square matrix.")
+        raise("ValueError: Input matrix, A, must be a square matrix.")
     Ts = [np.eye(n)]
     a_s = [1]
     for i in np.arange(n):
         AT = np.dot(A, Ts[i])
-        new_a = -1.0 / (i + 1) * np.trace(AT)  # Calculate the next "a"
+        new_a = -1./(i+1) * np.trace(AT)  # Calculate the next "a"
         a_s.append(new_a)
         # Calculate the next "T"
         new_T = np.dot(A, Ts[i]) + np.eye(n) * new_a
@@ -52,13 +50,17 @@ def find_resolvent(A):
         den.append([])
         for j in np.arange(n):
             den[i].append(np.array(det))
-    my_inv = tf.tf(adj, den)
-    return my_inv
 
+    adj = np.array(adj)
+    den = np.array(den)
+
+    my_inv = tf.tf(adj, den)
+
+    return my_inv
 
 # Here is a function to invert transfer function matricies
 def inverse_rational_matrix(my_tf_object):
-    """Takes the inverse of a transfer function matrix and returns it.
+    """ Takes the inverse of a transfer function matrix and returns it.
     Parameters:
         numArray_pres: a 2D array of the coefficients of the polynomials in the numerator of each entry of the original matrix
         denArray: a 2D array of the coefficients of the polynomials in the denominator of each entry of the original matrix
@@ -78,8 +80,8 @@ def inverse_rational_matrix(my_tf_object):
         for j in np.arange(n):
             numArray_list[i][j] = np.flipud(numArray_list[i][j])
             denArray_list[i][j] = np.flipud(denArray_list[i][j])
-    numArray_pres = numArray_list
-    denArray = denArray_list
+    numArray_pres = (numArray_list)
+    denArray = (denArray_list)
     numArray_fut = deepcopy(numArray_pres)
     our_ks = np.arange(n - 1, -1, -1)
     # We now go through the process of computing the adjoint of the numerator
@@ -95,123 +97,33 @@ def inverse_rational_matrix(my_tf_object):
                 # Based off of the paper by T. Downs called: On the inversion of a matrix of rational functions (1971)
                 # Case 1: i,j<k
                 if i < k and j < k:
-                    if k == n - 1:
-                        numArray_fut[i][j] = tuple(
-                            poly.polysub(
-                                poly.polymul(
-                                    poly.polymul(
-                                        numArray_pres[i][j], numArray_pres[k][k]
-                                    ),
-                                    poly.polymul(denArray[i][k], denArray[k][j]),
-                                ),
-                                poly.polymul(
-                                    poly.polymul(
-                                        numArray_pres[i][k], numArray_pres[k][j]
-                                    ),
-                                    poly.polymul(denArray[i][j], denArray[k][k]),
-                                ),
-                            )
-                        )
+                    if k == n-1:
+                        numArray_fut[i][j] = tuple(poly.polysub(poly.polymul(poly.polymul(numArray_pres[i][j], numArray_pres[k][k]), poly.polymul(denArray[i][k], denArray[k][j])),
+                                                                poly.polymul(poly.polymul(numArray_pres[i][k], numArray_pres[k][j]), poly.polymul(denArray[i][j], denArray[k][k]))))
                     else:
-                        numArray_fut[i][j] = tuple(
-                            poly.polydiv(
-                                poly.polysub(
-                                    poly.polymul(
-                                        poly.polymul(
-                                            numArray_pres[i][j], numArray_pres[k][k]
-                                        ),
-                                        poly.polymul(denArray[i][k], denArray[k][j]),
-                                    ),
-                                    poly.polymul(
-                                        poly.polymul(
-                                            numArray_pres[i][k], numArray_pres[k][j]
-                                        ),
-                                        poly.polymul(denArray[i][j], denArray[k][k]),
-                                    ),
-                                ),
-                                numArray_past[k + 1][k + 1],
-                            )[0]
-                        )
+                        numArray_fut[i][j] = tuple(poly.polydiv(poly.polysub(poly.polymul(poly.polymul(numArray_pres[i][j], numArray_pres[k][k]), poly.polymul(denArray[i][k], denArray[k][j])),
+                                                                             poly.polymul(poly.polymul(numArray_pres[i][k], numArray_pres[k][j]), poly.polymul(denArray[i][j], denArray[k][k]))),
+                                                                             numArray_past[k+1][k+1])[0])
                 # Case 2: i>k>j
                 elif i > k and k > j:
-                    numArray_fut[i][j] = tuple(
-                        poly.polydiv(
-                            poly.polysub(
-                                poly.polymul(
-                                    poly.polymul(
-                                        numArray_pres[i][j], numArray_pres[k][k]
-                                    ),
-                                    denArray[k][j],
-                                ),
-                                poly.polymul(
-                                    poly.polymul(
-                                        numArray_pres[i][k], numArray_pres[k][j]
-                                    ),
-                                    denArray[k][k],
-                                ),
-                            ),
-                            poly.polymul(denArray[k][i], numArray_past[k + 1][k + 1]),
-                        )[0]
-                    )
+                    numArray_fut[i][j] = tuple(poly.polydiv(poly.polysub(poly.polymul(poly.polymul(numArray_pres[i][j], numArray_pres[k][k]), denArray[k][j]),
+                                                     poly.polymul(poly.polymul(numArray_pres[i][k], numArray_pres[k][j]), denArray[k][k])),
+                                                     poly.polymul(denArray[k][i], numArray_past[k+1][k+1]))[0])
                 # Case 2.5: j>k>i
                 elif j > k and k > i:
-                    numArray_fut[i][j] = tuple(
-                        poly.polydiv(
-                            poly.polysub(
-                                poly.polymul(
-                                    poly.polymul(
-                                        numArray_pres[i][j], numArray_pres[k][k]
-                                    ),
-                                    denArray[i][k],
-                                ),
-                                poly.polymul(
-                                    poly.polymul(
-                                        numArray_pres[i][k], numArray_pres[k][j]
-                                    ),
-                                    denArray[k][k],
-                                ),
-                            ),
-                            poly.polymul(denArray[j][k], numArray_past[k + 1][k + 1]),
-                        )[0]
-                    )
+                    numArray_fut[i][j] = tuple(poly.polydiv(poly.polysub(poly.polymul(poly.polymul(numArray_pres[i][j], numArray_pres[k][k]), denArray[i][k]),
+                                                     poly.polymul(poly.polymul(numArray_pres[i][k], numArray_pres[k][j]), denArray[k][k])),
+                                                     poly.polymul(denArray[j][k], numArray_past[k+1][k+1]))[0])
                 # Case 4 from the paper: i=j>k
                 elif i == j and j > k:
-                    numArray_fut[i][j] = tuple(
-                        poly.polydiv(
-                            poly.polysub(
-                                poly.polymul(numArray_pres[i][i], numArray_pres[k][k]),
-                                poly.polymul(
-                                    poly.polymul(
-                                        numArray_pres[i][k], numArray_pres[k][i]
-                                    ),
-                                    poly.polymul(denArray[k][k], denArray[i][i]),
-                                ),
-                            ),
-                            poly.polymul(
-                                poly.polymul(denArray[k][i], denArray[i][k]),
-                                numArray_past[k + 1][k + 1],
-                            ),
-                        )[0]
-                    )
+                    numArray_fut[i][j] = tuple(poly.polydiv(poly.polysub(poly.polymul(numArray_pres[i][i], numArray_pres[k][k]),
+                                                     poly.polymul(poly.polymul(numArray_pres[i][k], numArray_pres[k][i]), poly.polymul(denArray[k][k], denArray[i][i]))),
+                                                     poly.polymul(poly.polymul(denArray[k][i], denArray[i][k]), numArray_past[k+1][k+1]))[0])
                 # Case 3 from the paper: i,j>k
                 elif i > k and j > k:
-                    numArray_fut[i][j] = tuple(
-                        poly.polydiv(
-                            poly.polysub(
-                                poly.polymul(numArray_pres[i][j], numArray_pres[k][k]),
-                                poly.polymul(
-                                    poly.polymul(
-                                        numArray_pres[i][k], numArray_pres[k][j]
-                                    ),
-                                    denArray[k][k],
-                                ),
-                            ),
-                            poly.polymul(
-                                poly.polymul(denArray[k][i], denArray[j][k]),
-                                numArray_past[k + 1][k + 1],
-                            ),
-                        )[0]
-                    )
+                    numArray_fut[i][j] = tuple(poly.polydiv(poly.polysub(poly.polymul(numArray_pres[i][j], numArray_pres[k][k]),
+                                                     poly.polymul(poly.polymul(numArray_pres[i][k], numArray_pres[k][j]), denArray[k][k])),
+                                                     poly.polymul(poly.polymul(denArray[k][i], denArray[j][k]), numArray_past[k+1][k+1]))[0])
                 # Case 5: i=k!=j
                 elif i == k and k != j:
                     numArray_fut[k][j] = tuple(poly.polymul((-1,), numArray_pres[k][j]))
@@ -220,10 +132,10 @@ def inverse_rational_matrix(my_tf_object):
                     numArray_fut[i][j] = tuple(numArray_pres[i][j])
                 # Case 7: i=j=k
                 elif i == j == k:
-                    if k == n - 1:
+                    if k == n-1:
                         numArray_fut[k][k] = (1,)
                     else:
-                        numArray_fut[k][k] = tuple(numArray_past[k + 1][k + 1])
+                        numArray_fut[k][k] = tuple(numArray_past[k+1][k+1])
     denArray_fut = deepcopy(denArray)
     # Below we do the denominator:
     for i in np.arange(n):
@@ -231,87 +143,97 @@ def inverse_rational_matrix(my_tf_object):
             # Each entry of the denominator is the product of all the original denominators except for the ith column
             #  and the jth row of the original denominator matrix
             # First we normalize the initial entry
-            denArray_fut[i][j] = tuple(
-                poly.polydiv(denArray_fut[i][j], denArray_fut[i][j])[0]
-            )
+            denArray_fut[i][j] = tuple(poly.polydiv(denArray_fut[i][j], denArray_fut[i][j])[0])
             for ii in np.arange(n):
                 for jj in np.arange(n):
                     if j != ii and i != jj:
-                        denArray_fut[i][j] = tuple(
-                            poly.polymul(denArray_fut[i][j], denArray[ii][jj])
-                        )
+                        denArray_fut[i][j] = tuple(poly.polymul(denArray_fut[i][j], denArray[ii][jj]))
     # Now we collect our results and we return our final inverted matrix
     my_adjoint_num = deepcopy(numArray_fut)
     my_adjoint_den = deepcopy(denArray_fut)
     # We multiply the adjoint by the inverse of the determinant of the matrix, the inverse of the determinant is
     # decided to be the past numerator array (or that before preforming the final pivot)
     inverse_determinant_den = deepcopy(numArray_pres[0][0])
-    inverse_determinant_num = 1
+    inverse_determinant_num = (1)
     for i in np.arange(n):
         for j in np.arange(n):
-            inverse_determinant_num = tuple(
-                poly.polymul(denArray[i][j], inverse_determinant_num)
-            )
+            inverse_determinant_num = tuple(poly.polymul(denArray[i][j], inverse_determinant_num))
     newMatrix_num = []
     newMatrix_den = []
     for i in np.arange(n):
         newMatrix_num.append([])
         for j in np.arange(n):
-            newMatrix_num[i].append(
-                tuple(poly.polymul(my_adjoint_num[i][j], inverse_determinant_num))
-            )
+            newMatrix_num[i].append(tuple(poly.polymul(my_adjoint_num[i][j], inverse_determinant_num)))
     # Now we do the denominators
     for i in np.arange(n):
         newMatrix_den.append([])
         for j in np.arange(n):
             x = np.shape(my_adjoint_den)
-            newMatrix_den[i].append(
-                tuple(poly.polymul(my_adjoint_den[i][j], inverse_determinant_den))
-            )
+            newMatrix_den[i].append(tuple(poly.polymul(my_adjoint_den[i][j], inverse_determinant_den)))
     # Ok, we finally have our inverse!
     numerators = newMatrix_num
     denominators = newMatrix_den
-    try:  # A polynomial solver for smaller degree polynomials to do cancellations and reduce the polynomials
+    try: # A polynomial solver for smaller degree polynomials to do cancellations and reduce the polynomials
         for i in np.arange(n):
             for j in np.arange(n):
                 numerators[i][j] = np.flipud(numerators[i][j])
                 denominators[i][j] = np.flipud(denominators[i][j])
                 k = 0
                 for val in numerators[i][j]:
+                    #print("A")
+                    '''
+                    # TEST
+                    print()
+                    print("TEST")
+                    print(round(val, 4))
+                    print(np.round(val, 4))
+                    print(np.round(val, 4)[0])
+                    print()
+                    '''
                     numerators[i][j][k] = round(val, 4)
                     k += 1
-                num_roots = np.roots(numerators[i][j])
-                den_roots = np.roots(denominators[i][j])
+                num_roots = (np.roots(numerators[i][j]))
+                den_roots = (np.roots(denominators[i][j]))
                 for r in np.arange(len(num_roots)):
-                    num_roots[r] = round(num_roots[r], 4) * 10000.0
+                    #print("B")
+                    '''
+                     # TEST
+                    print()
+                    print("TEST")
+                    print(round(num_roots[r], 4)*10000.)
+                    print(np.round(num_roots[r], 4)*10000.)
+                    print(np.round(num_roots[r], 4)[0]*10000.)
+                    print()                   
+                    '''
+                    num_roots[r] = round(num_roots[r], 4)*10000.
                 for dr in np.arange(len(den_roots)):
-                    den_roots[dr] = round(den_roots[dr], 4) * 10000.0
+                    #print("C")
+                    '''
+                    print()
+                    print("TEST")
+                    print(round(den_roots[dr], 4)*10000.)
+                    print(np.round(den_roots[dr], 4)*10000.)
+                    print(np.round(den_roots[dr], 4)[0]*10000.)
+                    print()                                      
+                    '''
+                    den_roots[dr] = round(den_roots[dr], 4)*10000.
                 num_roots = Counter(num_roots)
                 den_roots = Counter(den_roots)
                 all_roots_num = num_roots - den_roots
                 all_roots_den = den_roots - num_roots
-                if (
-                    np.any(numerators[i][j]) != 0
-                ):  # If zero then we want to keep them as they are.
-                    numerators[i][j] = numerators[i][j][0] / denominators[i][j][0]
+                if np.any(numerators[i][j]) != 0:  # If zero then we want to keep them as they are.
+                    numerators[i][j] = numerators[i][j][0]/denominators[i][j][0]
                 for k in all_roots_num:
                     for number in np.arange(all_roots_num[k]):
-                        numerators[i][j] = list(
-                            poly.polymul(numerators[i][j], (-k / 10000.0, 1))
-                        )
+                        numerators[i][j] = list(poly.polymul(numerators[i][j], (-k/10000., 1)))
                 denominators[i][j] = 1
                 for k in all_roots_den:
                     for number in np.arange(all_roots_den[k]):
-                        denominators[i][j] = list(
-                            poly.polymul(denominators[i][j], (-k / 10000.0, 1))
-                        )
+                        denominators[i][j] = list(poly.polymul(denominators[i][j], (-k/10000., 1)))
         # Now we return the values in the form of transfer functions by casting them with control.tf
         for i in np.arange(n):
             for j in np.arange(n):
-                if (
-                    type(numerators[i][j]) == "npumpy.ndarray"
-                    or type(numerators[i][j]) == list
-                ):
+                if type(numerators[i][j]) == 'npumpy.ndarray' or type(numerators[i][j]) == list:
                     numerators[i][j] = np.flipud(numerators[i][j])
                 else:
                     numerators[i][j] = np.array([float(np.real(numerators[i][j]))])
@@ -332,7 +254,7 @@ def inverse_rational_matrix(my_tf_object):
 
 # this function will help to find the li rows of C, for putting our LTI into a system that is simple to work with
 def order_li_rows(A, B, C, D):
-    """Takes the rows of the matrix and reorders them so that the first rows are all of the Linearly Independent ones
+    """ Takes the rows of the matrix and reorders them so that the first rows are all of the Linearly Independent ones
     Accepts: A, B, C, D our LTI state space representation of the system
         C a matrix of floats or ints.
     :return:
@@ -363,7 +285,7 @@ def order_li_rows(A, B, C, D):
 # we define a function that will partition the rows of any given matrix to be used later on in computations
 def partition_matrix(matrix, r, c):
     """Takes the matrix, and returns four matricies in a single list, each of them being partitioned along the chosen
-    axis, r corresponds to where the index starts in the partition of the rows and c corresponds with the columns."""
+     axis, r corresponds to where the index starts in the partition of the rows and c corresponds with the columns."""
     m_11 = matrix[0:r, 0:c]
     m_12 = matrix[0:r, c:]
     m_21 = matrix[r:, 0:c]
@@ -373,7 +295,7 @@ def partition_matrix(matrix, r, c):
 
 # additionally we will define a function to compute (sI-M)^-1 (meaning the inverse of the discribed matrix M)
 def sIminMinv(matrix):
-    """For a square matrix of constants this calculates and returns the matrix: (sI-M)^-1"""
+    """ For a square matrix of constants this calculates and returns the matrix: (sI-M)^-1"""
     n = matrix.shape
     if n[0] > 1:
         matrix = -matrix
@@ -391,10 +313,10 @@ def sIminMinv(matrix):
                         b = np.append(matrix[i, j].den, 0)
                         if len(a) < len(b):
                             c = b.copy()
-                            c[: len(a)] += a
+                            c[:len(a)] += a
                         else:
                             c = a.copy()
-                            c[: len(b)] += b
+                            c[:len(b)] += b
                         tfmatrix[i].append(c)
                         denmatrix[i].append(np.append(0, matrix[i, j].den))
                     else:
@@ -411,7 +333,7 @@ def sIminMinv(matrix):
         out = inverse_rational_matrix(out)
         return out
     elif np.shape(matrix)[0] == 0:
-        out = tf.tf(1, [1.0, 0])
+        out = tf.tf(1, [1., 0])
         out = inverse_rational_matrix(out)
         return out
 
@@ -466,9 +388,9 @@ def nullspace(C):
         else:
             for j in np.arange(num_free):
                 if j == col_ind:
-                    E[i].append(1.0)
+                    E[i].append(1.)
                 else:
-                    E[i].append(0.0)
+                    E[i].append(0.)
             col_ind += 1
     return np.array(E)
 
@@ -499,10 +421,10 @@ def make_matrix_a_tf(matrix):
         den.append([])
         for j in range(dim[1]):
             if row_flag or col_flag:
-                num[i].append(np.array([0.0]))
+                num[i].append(np.array([0.]))
             else:
                 num[i].append(np.array([float(matrix[i, j])]))
-            den[i].append(np.array([1.0]))
+            den[i].append(np.array([1.]))
     my_tf = tf.tf(num, den)
     return my_tf
 
@@ -525,7 +447,7 @@ def right_mult_matrix_by_tf(matrix, my_tf):
         den.append([])
         for j in range(dim[1]):
             num[i].append(np.array([float(matrix[i, j])]))
-            den[i].append(np.array([1.0]))
+            den[i].append(np.array([1.]))
     matrix_tf = tf.tf(num, den)
     # Now we multiply the systems
     new_tf = matrix_tf * my_tf
@@ -552,7 +474,7 @@ def left_mult_matrix_by_tf(matrix, my_tf):
         den.append([])
         for j in range(dim[1]):
             num[i].append(np.array([float(matrix[i, j])]))
-            den[i].append(np.array([1.0]))
+            den[i].append(np.array([1.]))
             if num[i][j] != 0:
                 flag = False
     if flag:
@@ -562,8 +484,8 @@ def left_mult_matrix_by_tf(matrix, my_tf):
             num.append([])
             den.append([])
             for j in np.arange(dim[1]):
-                num[i].append(np.array([0.0]))
-                den[i].append(np.array([1.0]))
+                num[i].append(np.array([0.]))
+                den[i].append(np.array([1.]))
         new_tf = tf.tf(num, den)
         return new_tf
     else:
@@ -591,7 +513,7 @@ def add_matrix_to_tf(matrix, my_tf):
         den.append([])
         for j in range(dim[1]):
             num[i].append(np.array([float(matrix[i, j])]))
-            den[i].append(np.array([1.0]))
+            den[i].append(np.array([1.]))
     matrix_tf = tf.tf(num, den)
     # Now we add the tfs
     new_tf = matrix_tf + my_tf
@@ -610,7 +532,7 @@ def diagnalize_tf(my_tf):
     for i in np.arange(len(num)):
         for j in np.arange(len(num[i])):
             if i != j:
-                num[i][j] = np.array([0.0])
+                num[i][j] = np.array([0.])
     diag_tf = tf.tf(num, den)
     return diag_tf
 
@@ -660,11 +582,11 @@ def build_identity_tf(dim):
         dens.append([])
         for j in np.arange(dim):
             if i == j:
-                nums[i].append(np.array([1.0]))
-                dens[i].append(np.array([1.0]))
+                nums[i].append(np.array([1.]))
+                dens[i].append(np.array([1.]))
             else:
-                nums[i].append(np.array([0.0]))
-                dens[i].append(np.array([1.0]))
+                nums[i].append(np.array([0.]))
+                dens[i].append(np.array([1.]))
     identity_tf = tf.tf(nums, dens)
     return identity_tf
 
@@ -718,18 +640,12 @@ def find_PQ(A, B, C, D):
         B_part = partition_matrix(B_hat, num_known, B_hat.shape[1])
         C_part = partition_matrix(C_hat, num_known, num_known)
         D_part = partition_matrix(D, num_known, D.shape[1])
-        sIminA_22 = simplify_tf(
-            find_resolvent(A_part[3])
-        )  # This is taking lots of time to do...
+        sIminA_22 = simplify_tf(find_resolvent(A_part[3]))  # This is taking lots of time to do...
         A_chunk = right_mult_matrix_by_tf(A_part[1], sIminA_22)
-        A_chunk = left_mult_matrix_by_tf(
-            A_part[2], A_chunk
-        )  # Lots of parts of A combined
+        A_chunk = left_mult_matrix_by_tf(A_part[2], A_chunk)  # Lots of parts of A combined
         B_chunk = right_mult_matrix_by_tf(A_part[1], sIminA_22)
         B_chunk = left_mult_matrix_by_tf(B_part[2], B_chunk)
-        D_final = make_matrix_a_tf(D_part[2]) - make_matrix_a_tf(
-            C_part[2]
-        ) * make_matrix_a_tf(D_part[0])
+        D_final = make_matrix_a_tf(D_part[2]) - make_matrix_a_tf(C_part[2]) * make_matrix_a_tf(D_part[0])
         W = add_matrix_to_tf(A_part[0], A_chunk)
         V = add_matrix_to_tf(B_part[0], B_chunk)
     Dw = diagnalize_tf(deepcopy(W))
@@ -742,10 +658,10 @@ def find_PQ(A, B, C, D):
         sI_den.append([])
         for j in np.arange(len(Dw_num[i])):
             if i == j:
-                sI_num[i].append(np.array([1.0, 0.0]))
+                sI_num[i].append(np.array([1., 0.]))
             else:
-                sI_num[i].append(np.array([0.0]))
-            sI_den[i].append(np.array([1.0]))
+                sI_num[i].append(np.array([0.]))
+            sI_den[i].append(np.array([1.]))
     sIminDw = tf.tf(sI_num, sI_den) - Dw
     # We now invert this diagnal matrix which means we flip each of the diagnal entries...
     sDw_num, sDw_den = [sIminDw.num, sIminDw.den]
@@ -755,16 +671,14 @@ def find_PQ(A, B, C, D):
         leng, wid, other = np.shape(sDw_num)
     for l in np.arange(leng):
         for w in np.arange(wid):
-            if l != w:
-                sDw_num[l][w], sDw_den[l][w] = [sDw_den[l][w], sDw_num[l][w]]
+                if l != w:
+                    sDw_num[l][w], sDw_den[l][w] = [sDw_den[l][w], sDw_num[l][w]]
     sIminDw = tf.tf(sDw_den, sDw_num)
     # We now calculate P and Q
     Q = sIminDw * (W - Dw)
     P = sIminDw * V
     if np.shape(D_final.num)[0] != 0:
-        P_up = left_mult_matrix_by_tf(
-            D_part[0], build_identity_tf(np.shape(Q.num)[0]) - Q
-        )
+        P_up = left_mult_matrix_by_tf(D_part[0], build_identity_tf(np.shape(Q.num)[0]) - Q)
         P_up = P + P_up
         if phat:
             P_down = D_final
@@ -775,9 +689,7 @@ def find_PQ(A, B, C, D):
         else:
             P_hat = P_up
     else:
-        P_hat = P + left_mult_matrix_by_tf(
-            D_part[0], build_identity_tf(np.shape(Q.num)[0]) - Q
-        )
+        P_hat = P + left_mult_matrix_by_tf(D_part[0], build_identity_tf(np.shape(Q.num)[0]) - Q)
     if phat:
         if np.shape(C_part[2])[0] != 0:
             Q_up = Q
@@ -810,8 +722,8 @@ def simplify_tf(my_tf_object):
         for j in np.arange(col):
             numArray_list[i][j] = np.flipud(numArray_list[i][j])
             denArray_list[i][j] = np.flipud(denArray_list[i][j])
-    numArray_pres = numArray_list
-    denArray = denArray_list
+    numArray_pres = (numArray_list)
+    denArray = (denArray_list)
     numArray_fut = deepcopy(numArray_pres)
 
     denArray_fut = deepcopy(denArray)
@@ -828,17 +740,13 @@ def simplify_tf(my_tf_object):
     for i in np.arange(row):
         newMatrix_num.append([])
         for j in np.arange(col):
-            newMatrix_num[i].append(
-                tuple(poly.polymul(my_adjoint_num[i][j], inverse_determinant_num))
-            )
+            newMatrix_num[i].append(tuple(poly.polymul(my_adjoint_num[i][j], inverse_determinant_num)))
     # Now we do the denominators
     for i in np.arange(row):
         newMatrix_den.append([])
         for j in np.arange(col):
             x = np.shape(my_adjoint_den)
-            newMatrix_den[i].append(
-                tuple(poly.polymul(my_adjoint_den[i][j], inverse_determinant_den))
-            )
+            newMatrix_den[i].append(tuple(poly.polymul(my_adjoint_den[i][j], inverse_determinant_den)))
     # Ok, we finally have our inverse!
     numerators = newMatrix_num
     denominators = newMatrix_den
@@ -849,40 +757,57 @@ def simplify_tf(my_tf_object):
                 denominators[i][j] = np.flipud(denominators[i][j])
                 k = 0
                 for val in numerators[i][j]:
+                    #print("D")
+                    '''
+                    print()
+                    print("TEST")
+                    print(round(val, 4))
+                    print(np.round(val, 4))                   
+                    print(np.round(val, 4)[0])
+                    print()
+                    '''
                     numerators[i][j][k] = round(val, 4)
                     k += 1
-                num_roots = np.roots(numerators[i][j])
-                den_roots = np.roots(denominators[i][j])
+                num_roots = (np.roots(numerators[i][j]))
+                den_roots = (np.roots(denominators[i][j]))
                 for r in np.arange(len(num_roots)):
-                    num_roots[r] = round(num_roots[r], 4) * 10000.0
+                    #print("E")
+                    '''
+                    print()
+                    print("TEST")
+                    print(round(num_roots[r], 4))
+                    print(np.round(num_roots[r], 4))
+                    print(np.round(num_roots[r], 4)[0])
+                    print()
+                    '''
+                    num_roots[r] = round(num_roots[r], 4) * 10000.
                 for dr in np.arange(len(den_roots)):
-                    den_roots[dr] = round(den_roots[dr], 4) * 10000.0
+                    '''
+                    print()
+                    print("TEST")
+                    print(round(den_roots[dr], 4) * 10000.)
+                    print(np.round(den_roots[dr], 4) * 10000.)
+                    print(np.round(den_roots[dr], 4)[0] * 10000.)
+                    print() 
+                    '''        
+                    den_roots[dr] = np.round(den_roots[dr], 4) * 10000.
                 num_roots = Counter(num_roots)
                 den_roots = Counter(den_roots)
                 all_roots_num = num_roots - den_roots
                 all_roots_den = den_roots - num_roots
-                if (
-                    np.any(numerators[i][j]) != 0
-                ):  # If zero then we want to keep them as they are.
+                if np.any(numerators[i][j]) != 0:  # If zero then we want to keep them as they are.
                     numerators[i][j] = numerators[i][j][0] / denominators[i][j][0]
                 for k in all_roots_num:
                     for number in np.arange(all_roots_num[k]):
-                        numerators[i][j] = list(
-                            poly.polymul(numerators[i][j], (-k / 10000.0, 1))
-                        )
+                        numerators[i][j] = list(poly.polymul(numerators[i][j], (-k / 10000., 1)))
                 denominators[i][j] = 1
                 for k in all_roots_den:
                     for number in np.arange(all_roots_den[k]):
-                        denominators[i][j] = list(
-                            poly.polymul(denominators[i][j], (-k / 10000.0, 1))
-                        )
+                        denominators[i][j] = list(poly.polymul(denominators[i][j], (-k / 10000., 1)))
         # Now we return the values in the form of transfer functions by casting them with control.tf
         for i in np.arange(row):
             for j in np.arange(col):
-                if (
-                    type(numerators[i][j]) == "npumpy.ndarray"
-                    or type(numerators[i][j]) == list
-                ):
+                if type(numerators[i][j]) == 'npumpy.ndarray' or type(numerators[i][j]) == list:
                     numerators[i][j] = np.flipud(numerators[i][j])
                 else:
                     numerators[i][j] = np.array([float(np.real(numerators[i][j]))])
@@ -897,13 +822,15 @@ def simplify_tf(my_tf_object):
     for i in np.arange(row):
         num_list.append(list(numerators[i]))
         den_list.append(list(denominators[i]))
+    #print(num_list)
+    #print(den_list)
     simp_tf = tf.tf(num_list, den_list)
     return simp_tf
 
 
 # A function that modifies C so that only selected states are viewable
 def build_C(A, B, C, D, indicies):
-    """This function rewrites C and D in the system to correspond to the state variables that were chosen as hidden
+    """ This function rewrites C and D in the system to correspond to the state variables that were chosen as hidden
     or manifest.
     :param:
     A, B, C, D are state space matricies for an LTI, here D and C should be such that we assume that all the state
@@ -940,7 +867,7 @@ def initial_gamma(my_tf):
         w = -np.inf
         if np.any(np.imag(poles)) != 0:
             for lamb in poles:
-                lamby = abs((np.imag(lamb) / np.real(lamb)) * (1.0 / abs(lamb)))
+                lamby = abs((np.imag(lamb) / np.real(lamb)) * (1. / abs(lamb)))
                 if lamby > w:
                     w = abs(lamb)
             sig_w = abs(my_tf(w * 1.0j))
@@ -967,7 +894,7 @@ def build_H(A, B, C, D, gamma):
     :param gamma: float (maybe complex)
     :return: H: a matrix
     """
-    R_S = 1.0 / (D**2 - gamma**2)
+    R_S = 1./(D**2 - gamma**2)
     ul = A - B * R_S * D * C
     ur = -gamma * B * R_S * B.T
     ll = gamma * C.T * R_S * C
@@ -990,13 +917,9 @@ def siso_h_inf(my_tf, error, max_iters=120):
     :return: h_inf_norm : a float or numpy.inf
     """
     # First we find the A, B, C, D matricies associated with my_tf and extract them as matrix objects
-    if (
-        np.sum(np.abs(my_tf.num)) == 0
-    ):  # If the transfer function is zero, the norm is 0
+    if np.sum(np.abs(my_tf.num)) == 0:  # If the transfer function is zero, the norm is 0
         return 0.0
-    if my_tf(1.234) == my_tf(
-        524.653
-    ):  # Make sure that it is not a zero transfer function.
+    if my_tf(1.234) == my_tf(524.653):  # Make sure that it is not a zero transfer function.
         return 0.0
     system = tf.tf2ss(my_tf)
     A = system.A
@@ -1015,11 +938,9 @@ def siso_h_inf(my_tf, error, max_iters=120):
     gamma1 = deepcopy(gamma)
     # begin a for loop
     for iter in np.arange(max_iters):
-        if (
-            gamma == (np.linalg.eig(D)[0][0]) ** 0.5
-        ):  # check that gamma is not a singular value of D
-            gamma *= 1 - 0.5 * error
-        H = build_H(A, B, C, D, (gamma * (1 + 2 * error)))
+        if gamma == (np.linalg.eig(D)[0][0])**0.5:  # check that gamma is not a singular value of D
+            gamma *= (1 - 0.5 * error)
+        H = build_H(A, B, C, D, (gamma*(1 + 2*error)))
         # Step II, check the stopping criteria
         flag = True
         try:
@@ -1027,9 +948,7 @@ def siso_h_inf(my_tf, error, max_iters=120):
         except np.linalg.linalg.LinAlgError:
             return max(gamma, gamma1)
         for eig in H_eigs:
-            if np.iscomplex(
-                eig
-            ):  # If the stopping criteria is met break out of the loop
+            if np.iscomplex(eig):  # If the stopping criteria is met break out of the loop
                 if abs(np.real(eig)) < 10**-10:  # Approximation
                     flag = False
         if flag:
@@ -1039,16 +958,14 @@ def siso_h_inf(my_tf, error, max_iters=120):
         ms = []
         sing_m = []
         for eig in H_eigs:
-            if np.iscomplex(
-                eig
-            ):  # If the stopping criteria is met break out of the loop
+            if np.iscomplex(eig):  # If the stopping criteria is met break out of the loop
                 if abs(np.real(eig)) < 10**-10:
                     ws.append(np.imag(eig))
         ws.sort()
         for i in np.arange(len(ws) - 1):
-            ms.append((ws[i] + ws[i + 1]) * 0.5)
+            ms.append((ws[i] + ws[i+1]) * 0.5)
         for m in ms:
-            sing_m.append(abs(my_tf(m * 1.0j)))
+            sing_m.append(abs(my_tf(m*1.0j)))
         gamma = np.max(sing_m)
     # The case where we finished our max iterations, or we have met the stopping criteria
     # output the best estimate made in our iterations (the most recent)
@@ -1066,7 +983,7 @@ def bool_tf(my_tf):
     """
     num = my_tf.num
     r, c = np.shape(num)[0:2]
-    bool_tf = np.ones([r, c])
+    bool_tf = np.ones([r,c])
     for i in np.arange(r):
         for j in np.arange(c):
             if len(num[i][j]) == 1:
@@ -1087,7 +1004,7 @@ def vuln_Q(Q, error, iters=100):
     """
     rows = np.shape(Q.num)[0]
     # Case where there is only one exposed variable:
-    if Q.num == [[np.array([0.0])]]:
+    if Q.num == [[np.array([0.])]]:
         return [[0]]
     # H = (I-Q)^-1
     i_min_Q = -add_matrix_to_tf(-np.eye(rows), Q)
@@ -1107,7 +1024,7 @@ def vuln_Q(Q, error, iters=100):
     for i in np.arange(rows):
         for j in np.arange(rows):
             if i == j:
-                if Qbool[i, j] == 1:
+                if Qbool[i,j] == 1:
                     no_cycle_nodes.append(i)
     for i in np.arange(Hrows):
         for j in np.arange(Hcols):
@@ -1116,7 +1033,7 @@ def vuln_Q(Q, error, iters=100):
                 if np.sum(np.abs(Hnum)) != 0 and np.sum(np.abs(Q.num[j][i])) != 0:
                     if i not in no_cycle_nodes and j not in no_cycle_nodes:
                         Hij = tf.tf(Hnum, np.real(H.den[i][j]))
-                        forescores[i][j] = siso_h_inf(Hij, error, iters)
+                        forescores[i][j] = (siso_h_inf(Hij, error, iters))
             else:
                 forescores[i][j] = 0
     for i in np.arange(Hrows):  # I believe this is how the vulnerability is assigned...
@@ -1143,6 +1060,7 @@ def format_pq(my_matrix):
     return out
 
 
+
 def ret_PQ(A, B, C, D, index):
     """
     Returns P and Q ready for visualization and with vulnerability scores as well.
@@ -1158,16 +1076,12 @@ def ret_PQ(A, B, C, D, index):
     C = np.matrix(C)
     D = np.matrix(D)
 
-    # print ("A.shape",A.shape)
-    # print ("B.shape",B.shape)
-    # print ("C.shape",C.shape)
-    # print ("D.shape",D.shape)
-
-    A, B, C, D = build_C(A, B, C, D, index)
+    A,B,C,D = build_C(A, B, C, D, index)
     P, Q = find_PQ(A, B, C, D)
     P = simplify_tf(P)
     Q = simplify_tf(Q)
     vuln = vuln_Q(Q, 0.01)
     Pout = format_pq(bool_tf(P))
-    Qout = format_pq(bool_tf(Q) + vuln)
+    Qout = format_pq(bool_tf(Q)+vuln)
     return Pout, Qout
+
