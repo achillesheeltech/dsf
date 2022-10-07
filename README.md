@@ -17,7 +17,7 @@ Imports
 Import module into another project as follows:
 
 ```bash
-$ poetry add dsf https://github.com/achillesheeltech/dsf
+$ poetry add git+https://github.com/achillesheeltech/dsf.git
 ```
 
 ```python
