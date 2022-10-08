@@ -55,6 +55,11 @@ def find_resolvent(A):
     den = np.array(den)
 
     my_inv = tf.tf(adj, den)
+<<<<<<< HEAD
+=======
+
+    return my_inv
+>>>>>>> 4771b0c1d73d224c41d20f6d4aab7dd06701d6ce
 
     return my_inv
 
@@ -185,9 +190,15 @@ def inverse_rational_matrix(my_tf_object):
                 num_roots = (np.roots(numerators[i][j]))
                 den_roots = (np.roots(denominators[i][j]))
                 for r in np.arange(len(num_roots)):
+<<<<<<< HEAD
                     num_roots[r] = round(num_roots[r], 4)*10000.
                 for dr in np.arange(len(den_roots)):
                     den_roots[dr] = round(den_roots[dr], 4)*10000.
+=======
+                    num_roots[r] = round(num_roots[r], 4) * 10000.0
+                for dr in np.arange(len(den_roots)):
+                    den_roots[dr] = round(den_roots[dr], 4) * 10000.0
+>>>>>>> 4771b0c1d73d224c41d20f6d4aab7dd06701d6ce
                 num_roots = Counter(num_roots)
                 den_roots = Counter(den_roots)
                 all_roots_num = num_roots - den_roots
@@ -733,9 +744,15 @@ def simplify_tf(my_tf_object):
                 num_roots = (np.roots(numerators[i][j]))
                 den_roots = (np.roots(denominators[i][j]))
                 for r in np.arange(len(num_roots)):
+<<<<<<< HEAD
                     num_roots[r] = round(num_roots[r], 4) * 10000.
                 for dr in np.arange(len(den_roots)):
                     den_roots[dr] = np.round(den_roots[dr], 4) * 10000.
+=======
+                    num_roots[r] = round(num_roots[r], 4) * 10000.0
+                for dr in np.arange(len(den_roots)):
+                    den_roots[dr] = np.round(den_roots[dr], 4) * 10000.0
+>>>>>>> 4771b0c1d73d224c41d20f6d4aab7dd06701d6ce
                 num_roots = Counter(num_roots)
                 den_roots = Counter(den_roots)
                 all_roots_num = num_roots - den_roots
@@ -1019,7 +1036,11 @@ def ret_PQ(A, B, C, D, index):
     C = np.matrix(C)
     D = np.matrix(D)
 
+<<<<<<< HEAD
     A,B,C,D = build_C(A, B, C, D, index)
+=======
+    A, B, C, D = build_C(A, B, C, D, index)
+>>>>>>> 4771b0c1d73d224c41d20f6d4aab7dd06701d6ce
     P, Q = find_PQ(A, B, C, D)
     P = simplify_tf(P)
     Q = simplify_tf(Q)
