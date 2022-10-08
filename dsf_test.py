@@ -24,7 +24,7 @@ class MyTestCase(unittest.TestCase):
 
         # Low ordered system (works maybe)
         A = np.array([[0.5, 0], [0, 0.5]])
-        B = np.array([[1, 1],[1,1]])
+        B = np.array([[1, 1], [1, 1]])
         C = np.array([[1], [1]])
         D = np.array([[1, 1], [1, 1]])
 
@@ -41,9 +41,9 @@ class MyTestCase(unittest.TestCase):
 
         # Low ordered system (works maybe)
         A = np.array([[0.5, 0, 0], [0, 0.5, 0], [0, 0, 0.5]])
-        B = np.array([[1, 1,1],[1,1,1], [1,1,1]])
+        B = np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]])
         C = np.array([[1], [1], [1]])
-        D = np.array([[1, 1,1], [1, 1,1], [1,1,1]])
+        D = np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]])
 
         index = [0]
 
@@ -58,9 +58,9 @@ class MyTestCase(unittest.TestCase):
 
         # Low ordered system (works maybe)
         A = np.array([[0.5, 0, 0, 0], [0, 0.5, 0, 0], [0, 0, 0.5, 0], [0, 0, 0, 0.5]])
-        B = np.array([[1, 1,1,1],[1,1,1,1], [1,1,1,1], [1,1,1,1]])
+        B = np.array([[1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1]])
         C = np.array([[1], [1], [1], [1]])
-        D = np.array([[1, 1,1,1], [1, 1,1,1], [1,1,1,1], [1,1,1,1]])
+        D = np.array([[1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1]])
 
         index = [0]
 
@@ -71,23 +71,41 @@ class MyTestCase(unittest.TestCase):
 
         # self.assertEqual(True, False)  # add assertion here
 
-
     def test_five_ordered_ret_PQ(self):
 
         # Low ordered system (works maybe)
-        A = np.array([[0.5, 0, 0, 0,0], [0, 0.5, 0, 0,0], [0, 0, 0.5, 0,0], [0, 0, 0, 0.5,0], [0, 0, 0, 0,0.5]])
-        B = np.array([[1,1,1,1,1],[1,1,1,1,1], [1,1,1,1,1], [1,1,1,1,1], [1,1,1,1,1]])
-        C = np.array([[1,1,1,1,1], [1,1,1,1,1], [1,1,1,1,1], [1,1,1,1,1]])
-        D = np.array([[1,1,1,1,1], [1,1,1,1,1], [1,1,1,1,1], [1,1,1,1,1]])
+        A = np.array(
+            [
+                [0.5, 0, 0, 0, 0],
+                [0, 0.5, 0, 0, 0],
+                [0, 0, 0.5, 0, 0],
+                [0, 0, 0, 0.5, 0],
+                [0, 0, 0, 0, 0.5],
+            ]
+        )
+        B = np.array(
+            [
+                [1, 1, 1, 1, 1],
+                [1, 1, 1, 1, 1],
+                [1, 1, 1, 1, 1],
+                [1, 1, 1, 1, 1],
+                [1, 1, 1, 1, 1],
+            ]
+        )
+        C = np.array(
+            [[1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1]]
+        )
+        D = np.array(
+            [[1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1]]
+        )
 
-        index = [1,2,3]
+        index = [1, 2, 3]
 
         p, q = dsf.ret_PQ(A, B, C, D, index)
 
-
         self.assertIsNotNone(p)
         self.assertIsNotNone(q)
-		
+
         # self.assertEqual(True, False)  # add assertion here
 
 
