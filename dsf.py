@@ -180,42 +180,13 @@ def inverse_rational_matrix(my_tf_object):
                 denominators[i][j] = np.flipud(denominators[i][j])
                 k = 0
                 for val in numerators[i][j]:
-                    #print("A")
-                    '''
-                    # TEST
-                    print()
-                    print("TEST")
-                    print(round(val, 4))
-                    print(np.round(val, 4))
-                    print(np.round(val, 4)[0])
-                    print()
-                    '''
                     numerators[i][j][k] = round(val, 4)
                     k += 1
                 num_roots = (np.roots(numerators[i][j]))
                 den_roots = (np.roots(denominators[i][j]))
                 for r in np.arange(len(num_roots)):
-                    #print("B")
-                    '''
-                     # TEST
-                    print()
-                    print("TEST")
-                    print(round(num_roots[r], 4)*10000.)
-                    print(np.round(num_roots[r], 4)*10000.)
-                    print(np.round(num_roots[r], 4)[0]*10000.)
-                    print()                   
-                    '''
                     num_roots[r] = round(num_roots[r], 4)*10000.
                 for dr in np.arange(len(den_roots)):
-                    #print("C")
-                    '''
-                    print()
-                    print("TEST")
-                    print(round(den_roots[dr], 4)*10000.)
-                    print(np.round(den_roots[dr], 4)*10000.)
-                    print(np.round(den_roots[dr], 4)[0]*10000.)
-                    print()                                      
-                    '''
                     den_roots[dr] = round(den_roots[dr], 4)*10000.
                 num_roots = Counter(num_roots)
                 den_roots = Counter(den_roots)
@@ -757,39 +728,13 @@ def simplify_tf(my_tf_object):
                 denominators[i][j] = np.flipud(denominators[i][j])
                 k = 0
                 for val in numerators[i][j]:
-                    #print("D")
-                    '''
-                    print()
-                    print("TEST")
-                    print(round(val, 4))
-                    print(np.round(val, 4))                   
-                    print(np.round(val, 4)[0])
-                    print()
-                    '''
                     numerators[i][j][k] = round(val, 4)
                     k += 1
                 num_roots = (np.roots(numerators[i][j]))
                 den_roots = (np.roots(denominators[i][j]))
                 for r in np.arange(len(num_roots)):
-                    #print("E")
-                    '''
-                    print()
-                    print("TEST")
-                    print(round(num_roots[r], 4))
-                    print(np.round(num_roots[r], 4))
-                    print(np.round(num_roots[r], 4)[0])
-                    print()
-                    '''
                     num_roots[r] = round(num_roots[r], 4) * 10000.
                 for dr in np.arange(len(den_roots)):
-                    '''
-                    print()
-                    print("TEST")
-                    print(round(den_roots[dr], 4) * 10000.)
-                    print(np.round(den_roots[dr], 4) * 10000.)
-                    print(np.round(den_roots[dr], 4)[0] * 10000.)
-                    print() 
-                    '''        
                     den_roots[dr] = np.round(den_roots[dr], 4) * 10000.
                 num_roots = Counter(num_roots)
                 den_roots = Counter(den_roots)
@@ -822,8 +767,6 @@ def simplify_tf(my_tf_object):
     for i in np.arange(row):
         num_list.append(list(numerators[i]))
         den_list.append(list(denominators[i]))
-    #print(num_list)
-    #print(den_list)
     simp_tf = tf.tf(num_list, den_list)
     return simp_tf
 
