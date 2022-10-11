@@ -10,7 +10,6 @@ from sympy import Matrix
 from scipy import linalg as la
 import time
 
-
 # A function to solve (sI-A)^-1
 def find_resolvent(A):
     """
@@ -52,7 +51,12 @@ def find_resolvent(A):
         den.append([])
         for j in np.arange(n):
             den[i].append(np.array(det))
+
+    adj = np.array(adj)
+    den = np.array(den)
+
     my_inv = tf.tf(adj, den)
+
     return my_inv
 
 
@@ -283,6 +287,7 @@ def inverse_rational_matrix(my_tf_object):
                 num_roots = np.roots(numerators[i][j])
                 den_roots = np.roots(denominators[i][j])
                 for r in np.arange(len(num_roots)):
+
                     num_roots[r] = round(num_roots[r], 4) * 10000.0
                 for dr in np.arange(len(den_roots)):
                     den_roots[dr] = round(den_roots[dr], 4) * 10000.0
@@ -856,7 +861,7 @@ def simplify_tf(my_tf_object):
                 for r in np.arange(len(num_roots)):
                     num_roots[r] = round(num_roots[r], 4) * 10000.0
                 for dr in np.arange(len(den_roots)):
-                    den_roots[dr] = round(den_roots[dr], 4) * 10000.0
+                    den_roots[dr] = np.round(den_roots[dr], 4) * 10000.0
                 num_roots = Counter(num_roots)
                 den_roots = Counter(den_roots)
                 all_roots_num = num_roots - den_roots
@@ -1157,11 +1162,6 @@ def ret_PQ(A, B, C, D, index):
     B = np.matrix(B)
     C = np.matrix(C)
     D = np.matrix(D)
-
-    # print ("A.shape",A.shape)
-    # print ("B.shape",B.shape)
-    # print ("C.shape",C.shape)
-    # print ("D.shape",D.shape)
 
     A, B, C, D = build_C(A, B, C, D, index)
     P, Q = find_PQ(A, B, C, D)
