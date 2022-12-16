@@ -1,12 +1,13 @@
 import numpy as np
 
-class StateSpaceModel():
+
+class StateSpaceModel:
     def __init__(self, A, B, C, ignoreThreshold=100, impulseResponseTime=None):
         self.A = A
         self.B = B
         self.C = C
         self.ignoreThreshold = ignoreThreshold
-        self._getSystemResponseTime(impulseResponseTime) # initialize the response time
+        self._getSystemResponseTime(impulseResponseTime)  # initialize the response time
         self.gamma = np.linalg.norm(self.impulseResponse, 1)
         self.zPeak = None
         self.yPeak = None
@@ -22,7 +23,7 @@ class StateSpaceModel():
 
     def _getSystemResponseTime(self, impulseResponseTime=None):
         if impulseResponseTime == None:
-            maxIterations = 500 # take an initial guess at the max value
+            maxIterations = 500  # take an initial guess at the max value
             impulseResponseTime = maxIterations + 1
 
             while impulseResponseTime > maxIterations:
@@ -73,7 +74,6 @@ class StateSpaceModel():
 
             self.impulseResponse = states
 
-
     def _handleNones(self, initialState, numTimeSteps, rs, deltas):
         try:
             if initialState == None:
@@ -110,7 +110,6 @@ class StateSpaceModel():
             self.zPeak = z
         return self.zPeak * delta
 
-
     def getAttack(self, z, delta):
         y = self.gamma * np.sign(z) + z
 
@@ -121,7 +120,9 @@ class StateSpaceModel():
         return self.yPeak * delta
 
     def modelSystem(self, initialState=None, numTimeSteps=None, rs=None, deltas=None):
-        initialState, numTimeSteps, rs, deltas = self._handleNones(initialState, numTimeSteps, rs, deltas)
+        initialState, numTimeSteps, rs, deltas = self._handleNones(
+            initialState, numTimeSteps, rs, deltas
+        )
         self.yPeak = None
         self.zPeak = None
 
@@ -131,7 +132,7 @@ class StateSpaceModel():
         for index in range(1, numTimeSteps + 1):
             # calculate attack
             z = self.C @ xs[index - 1]
-            #attack = y * deltas[index - 1]
+            # attack = y * deltas[index - 1]
             attack = self.getAttack(z, deltas[index - 1])
 
             # run normal system feedback with attack included
@@ -147,9 +148,9 @@ class StateSpaceModel():
 
     def _getXi(self, numTaps):
 
-        ''' xi is the (desired) product of delta with the system output
-            and is used to calculate the delta necessary to produce the
-            desired unstable output '''
+        """xi is the (desired) product of delta with the system output
+        and is used to calculate the delta necessary to produce the
+        desired unstable output"""
 
         taps = np.repeat(np.arange(1, numTaps + 1), self.impulseResponseTime)
 
@@ -181,17 +182,18 @@ class StateSpaceModel():
         upperBound = np.expand_dims(upperBound, axis=1)
         return upperBound
 
-
     def getDelta(self, numTaps, removeInitialOutput=True):
-        '''
+        """
         generate the minimum-perturbation destabilizing attack
-        '''
+        """
 
         # calculate the input required for the system to be unstable
         xi = self._getXi(numTaps)
 
         xs, z = self.modelSystem(rs=xi)
-        z, xi = self._trimOutput(z, xi, removeInitialOutput) # give z and xi a haircut if requested
+        z, xi = self._trimOutput(
+            z, xi, removeInitialOutput
+        )  # give z and xi a haircut if requested
 
         # compute delta that was required in order to generate that system behavior
         y = self.gamma * np.sign(z) + z
